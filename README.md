@@ -8,11 +8,8 @@ Chat support agents don't hold memories of previous chats with the users and don
 
 An intelligent chat support agent that uses Mem0 and Zep to remember the user's preferences and past interactions. This solution allows the support agent to implement cross channel integration of information that comes from previous chats, emails, and calls.
 
-<<<<<<< HEAD
 ![Chat interface showing the agent recognizing a returning user's history and the live Memory Source Panel displaying Mem0, Zep, SQLite, and RAG contributions](docs/screenshots/demo.png)
 
-=======
->>>>>>> 2feb8f72a9d2d0a14e85118848b3798b34db7439
 ## What This Project Actually Demonstrates
 
 Most support chatbots forget everything the moment a session ends. This project is a working demonstration of a support agent that does not have that problem. It remembers a specific user across three different channels (email, phone, and chat), recalls a communication preference the user stated days earlier, and applies that preference automatically without being asked again.
