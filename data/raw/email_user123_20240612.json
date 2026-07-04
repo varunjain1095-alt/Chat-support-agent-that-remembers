@@ -1,0 +1,7 @@
+{
+  "transcript_id": "email_user123_20240612",
+  "user_id": "user_123",
+  "channel": "email",
+  "timestamp": "2024-06-12T10:30:00Z",
+  "content": "Subject: Still getting rate limited after upgrading??\n\nHi,\n\nSo I upgraded to Pro on Monday specifically because we kept hitting the rate limit on the free tier during our batch jobs. Figured that would fix it since Pro is supposed to have way higher limits right.\n\nExcept it's still happening. Like literally today, twice. Same 429 error we were getting before, just less often I guess? But it shouldn't be happening at all anymore based on what your pricing page says.\n\nNot sure if this is a delay on your end where the upgrade hasn't fully kicked in yet, or if something's actually wrong. We've got a demo for a client on Thursday and I really need this sorted before then, this is kind of urgent tbh.\n\nCan someone look into this for account ending in the email below? Let me know what you need from me.\n\nThanks,\nRahul"
+}

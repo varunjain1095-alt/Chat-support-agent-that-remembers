@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI Support Agent — Live Console</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #080511;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      font-family: 'Outfit', sans-serif;
+      overflow: hidden;
+      color: rgba(255, 255, 255, 0.9);
+      position: relative;
+    }
+
+    /* Background orbs */
+    .bg-orb-1 {
+      position: absolute;
+      top: -150px;
+      left: -150px;
+      width: 500px;
+      height: 500px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(167, 139, 250, 0.15) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .bg-orb-2 {
+      position: absolute;
+      bottom: -150px;
+      right: -150px;
+      width: 500px;
+      height: 500px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(34, 211, 238, 0.12) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Main split container */
+    .main-container {
+      display: flex;
+      width: 92vw;
+      height: 90vh;
+      max-width: 1600px;
+      max-height: 1000px;
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: 0 32px 80px rgba(0,0,0,0.8);
+      position: relative;
+      z-index: 1;
+      background: linear-gradient(160deg, #0f0a1e 0%, #0a1f2e 40%, #0d1a0a 100%);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+ 
+    /* Common Glassmorphic Styles */
+    .glass {
+      background: rgba(255, 255, 255, 0.04);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glass-strong {
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+ 
+    /* Left pane - Chat Window */
+    .chat-pane {
+      flex: 1.3;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    /* Right pane - Memory panel */
+    .memory-pane {
+      flex: 1;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      background: rgba(0, 0, 0, 0.2);
+    }
+
+    /* Top Nav */
+    .nav-bar {
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .nav-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.95);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .glow-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #a78bfa, #22d3ee);
+      box-shadow: 0 0 8px rgba(167, 139, 250, 0.8);
+    }
+
+    /* Configuration bar */
+    .config-bar {
+      padding: 10px 18px;
+      background: rgba(0,0,0,0.15);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .config-label {
+      font-size: 11px;
+      font-weight: 500;
+      color: rgba(167, 139, 250, 0.9);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .config-input {
+      flex: 1;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 12px;
+      color: #fff;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .config-input:focus {
+      border-color: rgba(34, 211, 238, 0.5);
+    }
+    .reset-btn {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.7);
+      font-size: 10px;
+      font-weight: 600;
+      padding: 4px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      text-transform: uppercase;
+      transition: all 0.2s;
+    }
+    .reset-btn:hover {
+      background: rgba(255,255,255,0.12);
+      color: #fff;
+    }
+
+    /* Messages Area */
+    .messages-area {
+      flex: 1;
+      padding: 18px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      background: rgba(0, 0, 0, 0.05);
+    }
+
+    /* Message bubbles */
+    .message-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      max-width: 85%;
+    }
+    .message-row.user {
+      align-self: flex-end;
+      justify-content: flex-end;
+    }
+    .avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      background: linear-gradient(135deg, #a78bfa, #22d3ee);
+      box-shadow: 0 0 8px rgba(167, 139, 250, 0.3);
+    }
+    .avatar.agent {
+      background: linear-gradient(135deg, #a78bfa, #f472b6);
+    }
+    .bubble {
+      padding: 10px 14px;
+      font-size: 12.5px;
+      line-height: 1.4;
+      white-space: pre-wrap;
+    }
+    .bubble.agent {
+      background: rgba(167, 139, 250, 0.14);
+      border: 1px solid rgba(167, 139, 250, 0.25);
+      border-radius: 14px 14px 14px 2px;
+      color: rgba(255, 255, 255, 0.95);
+    }
+    .bubble.user {
+      background: rgba(34, 211, 238, 0.12);
+      border: 1px solid rgba(34, 211, 238, 0.22);
+      border-radius: 14px 14px 2px 14px;
+      color: rgba(255, 255, 255, 0.95);
+    }
+
+    /* Input area */
+    .input-area {
+      padding: 14px 18px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      background: rgba(0, 0, 0, 0.25);
+    }
+    .input-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .chat-input {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 24px;
+      padding: 10px 16px;
+      font-size: 13px;
+      color: #fff;
+      font-family: inherit;
+      outline: none;
+      transition: all 0.2s;
+    }
+    .chat-input:focus {
+      border-color: rgba(167, 139, 250, 0.4);
+      background: rgba(255, 255, 255, 0.08);
+    }
+    .send-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #a78bfa, #22d3ee);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      cursor: pointer;
+      color: #0d0d1a;
+      font-size: 16px;
+      font-weight: bold;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .send-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 12px rgba(34, 211, 238, 0.5);
+    }
+
+    /* Memory Source Panel */
+    .memory-header {
+      padding: 10px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 12px;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.95);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .memory-content {
+      flex: 1;
+      padding: 10px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .empty-sources {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: rgba(255,255,255,0.3);
+      font-size: 11px;
+      text-align: center;
+      gap: 6px;
+    }
+    .empty-sources span {
+      font-family: 'Caveat', cursive;
+      font-size: 18px;
+      color: rgba(167, 139, 250, 0.5);
+    }
+
+    /* Source Box */
+    .source-box {
+      border-radius: 10px;
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .source-box.mem0 {
+      background: rgba(167, 139, 250, 0.06);
+      border: 1px solid rgba(167, 139, 250, 0.15);
+    }
+    .source-box.zep {
+      background: rgba(34, 211, 238, 0.06);
+      border: 1px solid rgba(34, 211, 238, 0.15);
+    }
+    .source-box.sqlite-log {
+      background: rgba(244, 114, 182, 0.06);
+      border: 1px solid rgba(244, 114, 182, 0.15);
+    }
+    .source-box.sqlite-trans {
+      background: rgba(251, 191, 36, 0.06);
+      border: 1px solid rgba(251, 191, 36, 0.15);
+    }
+    .source-box.rag {
+      background: rgba(52, 211, 153, 0.06);
+      border: 1px solid rgba(52, 211, 153, 0.15);
+    }
+
+    .source-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .source-name {
+      font-size: 10.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .source-box.mem0 .source-name { color: #a78bfa; }
+    .source-box.zep .source-name { color: #22d3ee; }
+    .source-box.sqlite-log .source-name { color: #f472b6; }
+    .source-box.sqlite-trans .source-name { color: #fbbf24; }
+    .source-box.rag .source-name { color: #34d399; }
+
+    .source-badge {
+      font-size: 9.5px;
+      font-weight: 500;
+      padding: 1px 5px;
+      border-radius: 4px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.6);
+    }
+
+    .source-data-box {
+      background: rgba(0,0,0,0.25);
+      border-radius: 6px;
+      padding: 6px 8px;
+      font-size: 10.5px;
+      line-height: 1.35;
+      max-height: 70px;
+      overflow-y: auto;
+      font-family: monospace;
+      white-space: pre-wrap;
+      color: rgba(255,255,255,0.85);
+      border: 1px solid rgba(255,255,255,0.03);
+    }
+
+    /* Skeleton loader */
+    .skeleton-bubble {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      width: 60%;
+      padding: 10px 14px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 14px 14px 14px 2px;
+    }
+    .skeleton-line {
+      height: 8px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.08);
+      animation: pulse 1.5s infinite ease-in-out;
+    }
+    .skeleton-line:nth-child(1) { width: 80%; }
+    .skeleton-line:nth-child(2) { width: 50%; }
+
+    @keyframes pulse {
+      0% { opacity: 0.5; }
+      50% { opacity: 0.9; }
+      100% { opacity: 0.5; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="bg-orb-1"></div>
+<div class="bg-orb-2"></div>
+
+<div class="main-container">
+  
+  <!-- Left Panel: Chat Interface -->
+  <div class="chat-pane">
+    <div class="nav-bar glass">
+      <div class="nav-title">
+        <div class="glow-dot"></div>
+        <span>AI Support Assistant</span>
+      </div>
+      <button class="reset-btn" id="new-session-btn">New Session</button>
+    </div>
+
+    <div class="config-bar">
+      <span class="config-label">User ID:</span>
+      <input type="text" class="config-input" id="user-id-input" value="rahul@acme.com" placeholder="Email or User ID">
+    </div>
+
+    <!-- Chat Messages -->
+    <div class="messages-area" id="messages-container">
+      <div class="message-row">
+        <div class="avatar agent"></div>
+        <div class="bubble agent">Hello! I'm your AI Support Assistant. What can I help you with today?</div>
+      </div>
+    </div>
+
+    <!-- Input Box -->
+    <div class="input-area">
+      <form id="chat-form" onsubmit="return false;">
+        <div class="input-row">
+          <input type="text" class="chat-input" id="chat-input-field" placeholder="Message AI Support Assistant…" autocomplete="off">
+          <button type="submit" class="send-btn" id="send-message-btn">→</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Right Panel: Memory Source Panel -->
+  <div class="memory-pane">
+    <div class="memory-header glass">
+      <span>Memory Source Panel</span>
+      <span class="source-badge">Live Context Context</span>
+    </div>
+
+    <div class="memory-content" id="memory-content-container">
+      <div class="empty-sources" id="empty-sources-view">
+        <span>No context retrieved yet</span>
+        <div>Send a substantive message to populate memory sources.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  let sessionId = null;
+
+  const newSessionBtn = document.getElementById('new-session-btn');
+  const userIdInput = document.getElementById('user-id-input');
+  const chatInputField = document.getElementById('chat-input-field');
+  const sendBtn = document.getElementById('send-message-btn');
+  const messagesContainer = document.getElementById('messages-container');
+  const memoryContentContainer = document.getElementById('memory-content-container');
+  const emptySourcesView = document.getElementById('empty-sources-view');
+
+  // New session button resets session ID and UI
+  newSessionBtn.addEventListener('click', () => {
+    sessionId = null;
+    messagesContainer.innerHTML = `
+      <div class="message-row">
+        <div class="avatar agent"></div>
+        <div class="bubble agent">Hello! I'm your AI Support Assistant. What can I help you with today?</div>
+      </div>
+    `;
+    resetMemoryPanel();
+  });
+
+  function resetMemoryPanel() {
+    memoryContentContainer.innerHTML = `
+      <div class="empty-sources" id="empty-sources-view">
+        <span>No context retrieved yet</span>
+        <div>Send a substantive message to populate memory sources.</div>
+      </div>
+    `;
+  }
+
+  // Handle send message
+  document.getElementById('chat-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const text = chatInputField.value.trim();
+    if (!text) return;
+
+    // Append user bubble
+    appendMessage(text, 'user');
+    chatInputField.value = '';
+
+    // Append loading skeleton
+    const skeleton = appendSkeleton();
+
+    try {
+      const response = await fetch('/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          identifier: userIdInput.value.trim(),
+          message: text,
+          session_id: sessionId
+        })
+      });
+
+      if (skeleton) skeleton.remove();
+
+      if (!response.ok) {
+        appendMessage("Error: Failed to connect to server.", 'agent');
+        return;
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder("utf-8");
+      let buffer = "";
+      let bubbleElement = null;
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop();
+
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed || !trimmed.startsWith("data: ")) continue;
+
+          try {
+            const payload = JSON.parse(trimmed.slice(6));
+            if (payload.type === "token") {
+              if (!bubbleElement) {
+                bubbleElement = appendEmptyMessage();
+              }
+              bubbleElement.textContent += payload.text;
+              messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            } else if (payload.type === "done") {
+              sessionId = payload.session_id;
+              updateMemoryPanel(payload.context);
+            }
+          } catch (err) {
+            console.error("Error parsing stream chunk:", err, trimmed);
+          }
+        }
+      }
+    } catch (err) {
+      if (skeleton) skeleton.remove();
+      appendMessage(`Connection error: ${err.message}`, 'agent');
+    }
+  });
+
+  function appendEmptyMessage() {
+    const row = document.createElement('div');
+    row.className = 'message-row agent';
+
+    const avatar = document.createElement('div');
+    avatar.className = 'avatar agent';
+
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble agent';
+    bubble.textContent = '';
+
+    row.appendChild(avatar);
+    row.appendChild(bubble);
+    messagesContainer.appendChild(row);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    return bubble;
+  }
+
+  function appendMessage(text, sender) {
+    const row = document.createElement('div');
+    row.className = `message-row ${sender}`;
+
+    const avatar = document.createElement('div');
+    avatar.className = `avatar ${sender}`;
+
+    const bubble = document.createElement('div');
+    bubble.className = `bubble ${sender}`;
+    bubble.textContent = text;
+
+    if (sender === 'agent') {
+      row.appendChild(avatar);
+    }
+    row.appendChild(bubble);
+    messagesContainer.appendChild(row);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+  }
+
+  function appendSkeleton() {
+    const row = document.createElement('div');
+    row.className = 'message-row agent';
+
+    const avatar = document.createElement('div');
+    avatar.className = 'avatar agent';
+
+    const bubble = document.createElement('div');
+    bubble.className = 'skeleton-bubble';
+    bubble.innerHTML = `
+      <div class="skeleton-line"></div>
+      <div class="skeleton-line"></div>
+    `;
+
+    row.appendChild(avatar);
+    row.appendChild(bubble);
+    messagesContainer.appendChild(row);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    return row;
+  }
+
+  function updateMemoryPanel(context) {
+    if (!context) return;
+    
+    // Clear panel
+    memoryContentContainer.innerHTML = '';
+    let hasData = false;
+
+    const sources = [
+      { key: 'preferences', name: 'Mem0 (Preferences)', class: 'mem0', desc: 'Soft user style/tone guidelines' },
+      { key: 'account_state', name: 'Zep (Account State)', class: 'zep', desc: 'Hard user facts and subscription details' },
+      { key: 'issue_history', name: 'SQLite (Issue Log)', class: 'sqlite-log', desc: 'History of previous issue classification runs' },
+      { key: 'transcript_excerpts', name: 'SQLite (Transcripts)', class: 'sqlite-trans', desc: 'Raw excerpts from past chat and email entries' },
+      { key: 'policy_context', name: 'RAG (Refund/Escalation Rules)', class: 'rag', desc: 'Matching organizational policy document chunks' }
+    ];
+
+    sources.forEach(src => {
+      const srcData = context[src.key];
+      if (srcData && srcData.data && (
+        (typeof srcData.data === 'object' && Object.keys(srcData.data).length > 0) ||
+        (Array.isArray(srcData.data) && srcData.data.length > 0)
+      )) {
+        hasData = true;
+
+        const box = document.createElement('div');
+        box.className = `source-box ${src.class}`;
+
+        const meta = document.createElement('div');
+        meta.className = 'source-meta';
+
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'source-name';
+        nameSpan.textContent = src.name;
+
+        const badge = document.createElement('span');
+        badge.className = 'source-badge';
+        badge.textContent = src.desc;
+
+        meta.appendChild(nameSpan);
+        meta.appendChild(badge);
+
+        const dataBox = document.createElement('div');
+        dataBox.className = 'source-data-box';
+        
+        // Format beautifully
+        dataBox.textContent = typeof srcData.data === 'string'
+          ? srcData.data
+          : JSON.stringify(srcData.data, null, 2);
+
+        box.appendChild(meta);
+        box.appendChild(dataBox);
+        memoryContentContainer.appendChild(box);
+      }
+    });
+
+    if (!hasData) {
+      resetMemoryPanel();
+    }
+  }
+</script>
+
+</body>
+</html>
